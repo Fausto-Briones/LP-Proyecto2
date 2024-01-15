@@ -3,9 +3,83 @@ const app = express()
 const bodyParser = require('body-parser');
 const db = require('./firebase.js');
 app.use(bodyParser.json());
+
+
 app.get("/api", (req,res)=>{
     res.json({"users":["userOne","userTwo"]})
 })  
+
+
+app.post("/joinGroup", (req, res) => {
+  try {
+      const { groupId, userId } = req.body;
+
+      // Verifica que se proporcionen los parámetros necesarios
+      if (!groupId || !userId) {
+          return res.status(400).json({ error: 'GroupID and UserID is required' });
+      }
+
+      const groupsRef = db.ref(`groups/${groupId}`);
+
+      groupsRef.once('value', (groupInfo) => {
+          const group = groupInfo.val();
+
+          // Verifica si el grupo existe
+          if (!group) {
+              return res.status(404).json({ error: 'Group not found' });
+          }
+
+          // Verifica que el grupo tenga el rol correcto para permitir unirse
+          if (group.rol !== 1) {
+              return res.status(400).json({ error: 'Cannot join this group.' });
+          }
+
+          // Agrega al usuario al grupo
+          const userRef = db.ref(`users/${userId}/groups`);
+          userRef.push({ codigo: groupId });
+
+          res.status(200).json({ success: true, message: 'User joined.' });
+      });
+
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Bad request.' });
+  }
+});
+
+
+app.delete("/deleteGroup/:groupId", (req, res) => {
+  try {
+      const groupId = req.params.groupId;
+
+      // Verifica que se proporcione el parámetro necesario
+      if (!groupId) {
+          return res.status(400).json({ error: 'groupId is required to delete a group.' });
+      }
+
+      const groupsRef = db.ref(`groups/${groupId}`);
+
+      groupsRef.once('value', (groupInfo) => {
+          const group = groupInfo.val();
+
+          // Verifica si el grupo existe
+          if (!group) {
+              return res.status(404).json({ error: 'Group not found.' });
+          }
+
+          // Elimina el grupo
+          groupsRef.remove();
+
+          res.status(200).json({ success: true, message: 'Group deleted successfully.' });
+      });
+
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Error in the request.' });
+  }
+});
+
+
 
 app.get("/getTouristGroups",(req,res)=>{
 

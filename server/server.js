@@ -9,8 +9,8 @@ app.get("/getTouristGroups/:id",(req,res)=>{
 
 })
 
-app.get("/createTouristGroup/:id",(req,res)=>{
-    
+app.post("/createTouristGroup/:id",(req,res)=>{
+
 })
 
 

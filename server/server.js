@@ -1,5 +1,6 @@
 const express = require("express")
 const app = express()
+const db = require('./firebase.js');
 
 app.get("/api", (req,res)=>{
     res.json({"users":["userOne","userTwo"]})

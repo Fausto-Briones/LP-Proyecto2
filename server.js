@@ -94,15 +94,17 @@ app.get("/getTouristGroups",(req,res)=>{
 
 app.get("/getTouristGroups/:id", (req, res) => {
     try {
-      const idUser = parseInt(req.params.id); 
+      const userId = parseInt(req.params.id); // Assuming the ID is a number
       const groupsRef = db.ref('groups');
   
       groupsRef.once('value', (gruposInfo) => {
         const groups = gruposInfo.val() || {};
   
+        // Filter groups where the user with the specified ID is a member
         const userGroups = Object.values(groups).filter(group => {
           if (group && group.members) {
-            return group.members.some(member => member.idUser === idUser);
+            const memberArray = Array.isArray(group.members) ? group.members : Object.values(group.members);
+            return memberArray.some(member => member && member.idUser === userId);
           }
           return false;
         });
@@ -114,7 +116,6 @@ app.get("/getTouristGroups/:id", (req, res) => {
       res.status(500).json({ error: 'Error con la peticion' });
     }
   });
-
 
 app.post("/createTouristGroup",(req,res)=>{
     try{

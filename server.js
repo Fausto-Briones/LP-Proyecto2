@@ -92,6 +92,30 @@ app.get("/getTouristGroups",(req,res)=>{
       }
 })
 
+app.get("/getTouristGroups/:id", (req, res) => {
+    try {
+      const idUser = parseInt(req.params.id); 
+      const groupsRef = db.ref('groups');
+  
+      groupsRef.once('value', (gruposInfo) => {
+        const groups = gruposInfo.val() || {};
+  
+        const userGroups = Object.values(groups).filter(group => {
+          if (group && group.members) {
+            return group.members.some(member => member.idUser === idUser);
+          }
+          return false;
+        });
+  
+        res.status(200).json(userGroups);
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Error con la peticion' });
+    }
+  });
+
+
 app.post("/createTouristGroup",(req,res)=>{
     try{
     const { codigo,destino, members, rol } = req.body;

@@ -101,9 +101,9 @@ app.get("/getTouristGroups",(req,res)=>{
 
 app.post("/createTouristGroup",(req,res)=>{
     try{
-    const { codigo, members, rol } = req.body;
+    const { codigo,destino, members, rol } = req.body;
     const groupsRef = db.ref('groups');
-    const newGroupRef = groupsRef.push({ codigo, members, rol });
+    const newGroupRef = groupsRef.push({ codigo,destino, members, rol });
     members.forEach((member) => {
         const userRef = db.ref(`users/${member.idUser}/groups`);
         userRef.push({ codigo: newGroupRef.key });

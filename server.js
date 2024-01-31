@@ -12,43 +12,34 @@ app.get("/api", (req,res)=>{
 })  
 
 
-app.post("/joinGroup", (req, res) => {
-  try {
-      const { groupId, userId } = req.body;
+app.post('/joinGroup', async (req, res) => {
+    try {
+      const { codigo, userId } = req.body;
+  
 
-      // Verifica que se proporcionen los parámetros necesarios
-      if (!groupId || !userId) {
-          return res.status(400).json({ error: 'GroupID and UserID is required' });
+      if (!codigo || !userId) {
+        return res.status(400).json({ error: 'Codigo y UserId requeridos' });
       }
-
-      const groupsRef = db.ref(`groups/${groupId}`);
-
-      groupsRef.once('value', (groupInfo) => {
-          const group = groupInfo.val();
-
-          // Verifica si el grupo existe
-          if (!group) {
-              return res.status(404).json({ error: 'Group not found' });
-          }
-
-          // Verifica que el grupo tenga el rol correcto para permitir unirse
-          if (group.rol !== 1) {
-              return res.status(400).json({ error: 'Cannot join this group.' });
-          }
-
-          // Agrega al usuario al grupo
-          const userRef = db.ref(`users/${userId}/groups`);
-          userRef.push({ codigo: groupId });
-
-          res.status(200).json({ success: true, message: 'User joined.' });
-      });
-
-  } catch (error) {
+  
+      // Obtener una referencia al grupo con el código proporcionado
+      const groupsRef = db.ref('groups');
+      const querySnapshot = await groupsRef.orderByChild('codigo').equalTo(codigo).once('value');
+  
+      if (!querySnapshot.exists()) {
+        return res.status(404).json({ error: 'Groupo no encontrado' });
+      }
+  
+      // Obtener la clave del grupo
+      const groupId = Object.keys(querySnapshot.val())[0];
+  
+      await groupsRef.child(groupId).child('members').push(userId);
+  
+      res.status(200).json({ success: true, message: 'Usuario unido' });
+    } catch (error) {
       console.error(error);
-      res.status(500).json({ error: 'Bad request.' });
-  }
-});
-
+      res.status(500).json({ error: 'Internal server error.' });
+    }
+  });
 
 app.delete("/deleteGroup/:groupId", (req, res) => {
   try {

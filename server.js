@@ -1,9 +1,11 @@
 const express = require("express")
+const cors = require ("cors")
 const app = express()
 const bodyParser = require('body-parser');
 const db = require('./firebase.js');
 app.use(bodyParser.json());
 
+app.use(cors());
 
 app.get("/api", (req,res)=>{
     res.json({"users":["userOne","userTwo"]})
